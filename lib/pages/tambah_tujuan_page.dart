@@ -63,8 +63,8 @@ class _TambahTujuanPageState extends State<TambahTujuanPage> {
 
     setState(() => _isSending = true);
 
-    // ⚠️ GANTI IP ADDRESS SESUAI LAPTOP KAMU
-    String baseUrl = 'http://10.151.175.231/money_api';
+    // ip address
+    String baseUrl = 'http://192.168.1.7/money_api';
     var url = _isEditMode
         ? Uri.parse('$baseUrl/update_tujuan.php')
         : Uri.parse('$baseUrl/add_tujuan.php');
@@ -84,8 +84,6 @@ class _TambahTujuanPageState extends State<TambahTujuanPage> {
       if (response.statusCode == 200) {
         if (!mounted) return;
 
-        // ✅ BERHASIL DISIMPAN
-        // Kita HAPUS SnackBar di sini.
         // Cukup tutup halaman dan kirim nilai 'true' ke halaman TujuanPage.
         Navigator.pop(context, true);
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'tambah_transaksi_page.dart';
 
@@ -18,14 +19,25 @@ class _BerandaPageState extends State<BerandaPage> {
   double _totalPemasukan = 0;
   double _totalPengeluaran = 0;
   double _totalSaldo = 0;
+  String _userName = "User"; // ✅ Variabel untuk menyimpan nama user
 
-  // ⚠️ GANTI IP ADDRESS SESUAI DENGAN LAPTOP KAMU
-  final String baseUrl = 'http://10.151.175.231/money_api';
+  // ip address
+  final String baseUrl = 'http://192.168.1.7/money_api';
 
   @override
   void initState() {
     super.initState();
-    _getData();
+    _loadUser(); // Load nama user saat aplikasi dibuka
+    _getData(); // Load data transaksi
+  }
+
+  // Fungsi mengambil Nama User dari SharedPreferences
+  Future<void> _loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Ambil nama, jika null default ke "Pengguna"
+      _userName = prefs.getString('name') ?? "Pengguna";
+    });
   }
 
   Future<void> _getData() async {
@@ -34,7 +46,7 @@ class _BerandaPageState extends State<BerandaPage> {
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
 
-        // LOGIC SORTING
+        // Logic Sorting: Urutkan berdasarkan tanggal terbaru, lalu ID terbesar
         data.sort((a, b) {
           DateTime dateA =
               DateTime.tryParse(a['date'].toString()) ?? DateTime.now();
@@ -55,12 +67,12 @@ class _BerandaPageState extends State<BerandaPage> {
           setState(() {
             _listData = data;
             _isLoading = false;
-            _hitungSaldo();
+            _hitungSaldo(); // Hitung ulang saldo setelah data masuk
           });
         }
       }
     } catch (e) {
-      debugPrint('Error: $e');
+      debugPrint('Error Get Data: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -74,9 +86,9 @@ class _BerandaPageState extends State<BerandaPage> {
       if (response.statusCode == 200) {
         setState(() {
           _listData.removeWhere((item) => item['id'].toString() == id);
-          _hitungSaldo();
+          _hitungSaldo(); // Update saldo setelah hapus
         });
-        _getData();
+        _getData(); // Refresh data dari server untuk memastikan
         _showSuccessPopup("Data berhasil dihapus");
       }
     } catch (e) {
@@ -233,7 +245,10 @@ class _BerandaPageState extends State<BerandaPage> {
       ),
     );
 
+    // Tampilkan overlay
     Overlay.of(context).insert(overlayEntry);
+
+    // Hilangkan overlay setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
 
@@ -243,7 +258,7 @@ class _BerandaPageState extends State<BerandaPage> {
       backgroundColor: const Color(0xFFF5F9FF),
       body: Stack(
         children: [
-          // 1. BACKGROUND HEADER BIRU
+          // BACKGROUND HEADER
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -256,17 +271,15 @@ class _BerandaPageState extends State<BerandaPage> {
             ),
           ),
 
-          // 🔥 TOMBOL REFRESH HEADER SUDAH DIHAPUS 🔥
-
-          // 2. KONTEN UTAMA
           SafeArea(
             child: Column(
               children: [
-                _buildTopBar(),
+                _buildTopBar(), // Bagian Nama User & Profil
                 const SizedBox(height: 10),
-                _buildBalanceCard(),
+                _buildBalanceCard(), // Kartu Saldo
                 const SizedBox(height: 20),
 
+                // Judul List
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -279,11 +292,11 @@ class _BerandaPageState extends State<BerandaPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // Tombol refresh list juga sudah dihapus
                     ],
                   ),
                 ),
 
+                // List Transaksi
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
@@ -295,7 +308,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           ),
                         )
                       : RefreshIndicator(
-                          onRefresh: _getData, // Tarik ke bawah untuk refresh
+                          onRefresh: _getData,
                           child: ListView.separated(
                             padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
                             itemCount: _listData.length,
@@ -312,6 +325,7 @@ class _BerandaPageState extends State<BerandaPage> {
         ],
       ),
 
+      // Tombol Tambah Transaksi
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await showModalBottomSheet(
@@ -333,26 +347,27 @@ class _BerandaPageState extends State<BerandaPage> {
     );
   }
 
+  // Widget Bagian Atas (Nama User)
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 22,
             backgroundColor: Colors.white,
-            backgroundImage: AssetImage('assets/pp.jpeg'),
-            child: null,
+            child: Icon(Icons.person, color: Colors.grey.shade400),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
+              // Menampilkan Nama User
               Text(
-                'Halo, Ririn! 👋',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                'Halo, $_userName! 👋',
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
-              Text(
+              const Text(
                 'Dashboard',
                 style: TextStyle(
                   color: Colors.white,
@@ -374,11 +389,11 @@ class _BerandaPageState extends State<BerandaPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 15,
-            offset: const Offset(0, 8),
+            offset: Offset(0, 8),
           ),
         ],
       ),

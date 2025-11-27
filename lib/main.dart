@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// ✅ PERBAIKAN IMPORT: Masuk ke folder 'akun'
 import 'akun/masuk.dart';
-
 import 'pages/beranda_page.dart';
 import 'pages/grafik_page.dart';
 import 'pages/tujuan_page.dart';
@@ -27,8 +26,48 @@ class MoneyTrackerGroupApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF6FBFF),
       ),
-      home: const MasukPage(), // Ini memanggil dari folder akun/masuk_page.dart
+      // Cek status login saat awal aplikasi
+      home: const CheckSession(),
     );
+  }
+}
+
+class CheckSession extends StatefulWidget {
+  const CheckSession({super.key});
+
+  @override
+  State<CheckSession> createState() => _CheckSessionState();
+}
+
+class _CheckSessionState extends State<CheckSession> {
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+
+  Future<void> _checkLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isLogin = prefs.getBool('isLogin') ?? false;
+
+    if (mounted) {
+      if (isLogin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MasukPage()),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 

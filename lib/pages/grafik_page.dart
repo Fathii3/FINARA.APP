@@ -59,8 +59,8 @@ class _GrafikPageState extends State<GrafikPage> {
 
   Future<void> _fetchData() async {
     setState(() => _isLoading = true);
-    // ⚠️ GANTI IP ADDRESS SESUAI DENGAN LAPTOP KAMU
-    var url = Uri.parse('http://10.151.175.231/money_api/get_transaksi.php');
+    // ip address
+    var url = Uri.parse('http://192.168.1.7/money_api/get_transaksi.php');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -128,7 +128,7 @@ class _GrafikPageState extends State<GrafikPage> {
       backgroundColor: const Color(0xFFF5F9FF),
       body: Stack(
         children: [
-          // 1. HEADER BACKGROUND
+          // HEADER BACKGROUND
           Container(
             height: 220,
             decoration: const BoxDecoration(
@@ -144,7 +144,7 @@ class _GrafikPageState extends State<GrafikPage> {
           SafeArea(
             child: Column(
               children: [
-                // 2. HEADER TITLE & MONTH NAVIGATOR (Fixed)
+                // HEADER TITLE & MONTH NAVIGATOR (Fixed)
                 Padding(
                   padding: const EdgeInsets.only(top: 10, bottom: 15),
                   child: const Text(
@@ -197,14 +197,14 @@ class _GrafikPageState extends State<GrafikPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // 3. BODY CONTENT
+                // BODY CONTENT
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : Column(
                           // Ganti SingleChildScrollView dengan Column
                           children: [
-                            // --- BAGIAN ATAS (FIXED / TIDAK SCROLL) ---
+                            //  BAGIAN ATAS (STATIS)
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -284,9 +284,9 @@ class _GrafikPageState extends State<GrafikPage> {
                                   ),
                                   const SizedBox(height: 15),
 
-                                  // CHART (TIDAK SCROLL, UKURAN DIPERKECIL SEDIKIT)
+                                  // CHART
                                   Container(
-                                    height: 220, // Tinggi tetap untuk chart
+                                    height: 220,
                                     padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -337,7 +337,7 @@ class _GrafikPageState extends State<GrafikPage> {
                               ),
                             ),
 
-                            // --- BAGIAN BAWAH (SCROLLABLE) ---
+                            //  BAGIAN BAWAH (SCROLLABLE)
                             const SizedBox(height: 15),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 20),

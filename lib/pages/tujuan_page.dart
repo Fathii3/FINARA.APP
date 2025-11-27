@@ -15,7 +15,7 @@ class TujuanPage extends StatefulWidget {
 class _TujuanPageState extends State<TujuanPage> {
   List _listGoals = [];
   bool _isLoading = true;
-  final String baseUrl = 'http://10.151.175.231/money_api';
+  final String baseUrl = 'http://192.168.1.7/money_api';
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _TujuanPageState extends State<TujuanPage> {
       );
       if (response.statusCode == 200) {
         _getGoals();
-        // 🔥 HANYA PAKAI POPUP ATAS (SnackBar dihapus) 🔥
+
         if (mounted) {
           _showSuccessPopup("Tujuan berhasil dihapus");
         }
@@ -106,15 +106,14 @@ class _TujuanPageState extends State<TujuanPage> {
     ).format(number);
   }
 
-  // ============================================================
-  // 🔥 FUNGSI POPUP NOTIFIKASI ATAS 🔥
-  // ============================================================
+  // FUNGSI POPUP NOTIFIKASI ATAS
+
   void _showSuccessPopup(String message) {
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50, // Posisi di Atas
+        top: 50,
         left: 20,
         right: 20,
         child: Material(
@@ -132,7 +131,7 @@ class _TujuanPageState extends State<TujuanPage> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF43A047), // Hijau
+                    color: const Color(0xFF43A047),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -251,7 +250,7 @@ class _TujuanPageState extends State<TujuanPage> {
                   backgroundColor: Colors.transparent,
                   builder: (context) => const TambahTujuanPage(),
                 );
-                // 🔥 JIKA BERHASIL BUAT, TAMPILKAN POPUP ATAS 🔥
+                // JIKA BERHASIL BUAT, TAMPILKAN POPUP ATAS
                 if (result == true) {
                   _getGoals();
                   _showSuccessPopup("Target tabungan berhasil dibuat!");
@@ -415,7 +414,7 @@ class _TujuanPageState extends State<TujuanPage> {
                                         builder: (context) =>
                                             TambahTujuanPage(goal: item),
                                       );
-                                      // 🔥 JIKA BERHASIL EDIT, TAMPILKAN POPUP ATAS 🔥
+                                      // JIKA BERHASIL EDIT, TAMPILKAN POPUP ATAS
                                       if (result == true) {
                                         _getGoals();
                                         _showSuccessPopup(

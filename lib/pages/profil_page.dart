@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'edit_profil_page.dart';
-
-// ✅ PERBAIKAN IMPORT (PENTING):
-// 1. '../' artinya keluar dari folder 'pages' (kembali ke lib/)
-// 2. 'akun/' artinya masuk ke folder akun
-// 3. 'masuk_page.dart' adalah filenya
 import '../akun/masuk.dart';
 
 class ProfilPage extends StatefulWidget {
@@ -15,24 +11,104 @@ class ProfilPage extends StatefulWidget {
 }
 
 class _ProfilPageState extends State<ProfilPage> {
-  String name = "Ririn Margaretha";
-  String email = "margareth@gmail.com";
+  String id = "";
+  String name = "";
+  String email = "";
 
-  // ============================================================
-  // 🔥 FUNGSI POPUP NOTIFIKASI 🔥
-  // ============================================================
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  // Fungsi Ambil Data Profil (ID, Nama, Email)
+  Future<void> _loadProfile() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      id = prefs.getString('id') ?? ""; // Ambil ID dari sesi login
+      name = prefs.getString('name') ?? "Nama Pengguna";
+      email = prefs.getString('email') ?? "email@contoh.com";
+    });
+  }
+
+  // Fungsi Navigasi ke Edit Profil
+  void _navigateToEditProfile() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EditProfilPage(idUser: id, currentName: name, currentEmail: email),
+      ),
+    );
+
+    // Jika kembali membawa data baru, update tampilan & simpan ke sesi lokal
+    if (result != null && result is Map<String, String>) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('name', result['name']!);
+      await prefs.setString('email', result['email']!);
+
+      _loadProfile(); // Refresh tampilan profil
+
+      // Tampilkan Pop-up Sukses dari Atas
+      if (mounted) {
+        _showSuccessPopup("Profil berhasil diperbarui!");
+      }
+    }
+  }
+
+  // Fungsi Logout
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Keluar Akun"),
+        content: const Text("Apakah kamu yakin ingin keluar dari aplikasi?"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Hapus Sesi Login
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+
+              // Kembali ke Login
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const MasukPage()),
+                (route) => false,
+              );
+            },
+            child: const Text(
+              "Ya, Keluar",
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showSuccessPopup(String message) {
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,
+        top: 50, // Posisi dari atas layar
         left: 20,
         right: 20,
         child: Material(
           color: Colors.transparent,
           child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: -100, end: 0),
+            tween: Tween(
+              begin: -100,
+              end: 0,
+            ), // Animasi slide dari atas (-100 ke 0)
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutBack,
             builder: (context, value, child) {
@@ -102,65 +178,11 @@ class _ProfilPageState extends State<ProfilPage> {
       ),
     );
 
+    // Tampilkan overlay
     Overlay.of(context).insert(overlayEntry);
+
+    // Hilangkan overlay setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
-  }
-
-  // Fungsi Navigasi ke Edit
-  void _navigateToEditProfile() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            EditProfilPage(currentName: name, currentEmail: email),
-      ),
-    );
-
-    if (result != null && result is Map<String, String>) {
-      setState(() {
-        name = result['name']!;
-        email = result['email']!;
-      });
-      _showSuccessPopup("Profil berhasil diperbarui!");
-    }
-  }
-
-  // ============================================================
-  // 🔥 FUNGSI LOGOUT / KELUAR 🔥
-  // ============================================================
-  void _handleLogout() {
-    // Tampilkan Dialog Konfirmasi
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Keluar Akun"),
-        content: const Text("Apakah kamu yakin ingin keluar dari aplikasi?"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // Batal
-            child: const Text("Batal", style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Tutup dialog dulu
-
-              // LOGIKA KELUAR & HAPUS RIWAYAT NAVIGASI
-              // Arahkan ke MasukPage (Login)
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const MasukPage()),
-                (route) => false, // Hapus semua halaman sebelumnya
-              );
-            },
-            child: const Text(
-              "Ya, Keluar",
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -197,21 +219,26 @@ class _ProfilPageState extends State<ProfilPage> {
                   ),
                   const SizedBox(height: 30),
 
-                  // AVATAR
+                  // AVATAR (MENGGUNAKAN ICON BAWAAN FLUTTER)
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/pp.jpeg'),
-                      child: null,
+                      child: Icon(
+                        Icons.person,
+                        size: 60,
+                        color: Colors.grey.shade400,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 15),
+
+                  // Tampilkan Data
                   Text(
                     name,
                     style: const TextStyle(
@@ -262,20 +289,13 @@ class _ProfilPageState extends State<ProfilPage> {
                             () {},
                           ),
                           const Divider(height: 1, indent: 60, endIndent: 20),
-                          _buildMenuItem(
-                            "Bantuan",
-                            Icons.help_rounded,
-                            Colors.purple,
-                            () {},
-                          ),
-                          const Divider(height: 1, indent: 60, endIndent: 20),
 
-                          // --- TOMBOL KELUAR ---
+                          // TOMBOL KELUAR
                           _buildMenuItem(
                             "Keluar",
                             Icons.logout_rounded,
                             Colors.red,
-                            _handleLogout, // Panggil fungsi logout di sini
+                            _handleLogout,
                           ),
                         ],
                       ),

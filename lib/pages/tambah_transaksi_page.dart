@@ -14,7 +14,7 @@ class AddTransactionPage extends StatefulWidget {
 class _AddTransactionPageState extends State<AddTransactionPage> {
   bool isIncome = true;
   DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay.now(); // Variable Waktu
+  TimeOfDay selectedTime = TimeOfDay.now();
 
   final TextEditingController amountController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
@@ -75,8 +75,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
     String dateStr = DateFormat('yyyy-MM-dd HH:mm:ss').format(finalDateTime);
 
-    // ⚠️ GANTI IP ADDRESS
-    String baseUrl = 'http://10.151.175.231/money_api';
+    // ip address
+    String baseUrl = 'http://192.168.1.7/money_api';
     var url = _isEditMode
         ? Uri.parse('$baseUrl/update_transaksi.php')
         : Uri.parse('$baseUrl/add_transaksi.php');
@@ -136,7 +136,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     ).format(selectedDate);
     String timeDisplay = selectedTime.format(
       context,
-    ); // Format jam lokal (14:30)
+    ); // Format jam lokal (conth 14:30)
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
@@ -222,7 +222,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     children: [
                       // PILIH TANGGAL
                       Expanded(
-                        flex: 3, // Lebih lebar untuk tanggal
+                        flex: 3,
                         child: _OutlinedBox(
                           onTap: _pickDate,
                           child: Row(
@@ -241,7 +241,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       const SizedBox(width: 12),
                       // PILIH JAM
                       Expanded(
-                        flex: 2, // Lebih kecil untuk jam
+                        flex: 2,
                         child: _OutlinedBox(
                           onTap: _pickTime,
                           child: Row(
